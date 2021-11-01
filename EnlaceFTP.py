@@ -16,7 +16,7 @@ def agregar_mapa_archivo(origen, destino, archivo = "filemap.csv"):
 
 class EnlaceFTP:
 
-    def __init__(self, parametros):
+    def __init__(self, parametros, timeout = None):
         self.__lista_dominios = parametros["dominios_respaldo"]
         self.__dominio = self.__lista_dominios[0]
         self.__archivos_transferidos = 0
@@ -27,8 +27,8 @@ class EnlaceFTP:
         self.__ignorados = parametros["ignorados"]
         
 
-    def __conexion(self):
-        ftp = ftplib.FTP(self.__host)
+    def __conexion(self, timeout = None):
+        ftp = ftplib.FTP(self.__host, timeout = timeout)
         ftp.login(self.__usuario, self.__pass)
         return ftp
 
@@ -50,7 +50,7 @@ class EnlaceFTP:
 
     def listar_usuarios(self, dominio = None):
         ret = []
-        conexion = self.__conexion()
+        conexion = self.__conexion(timeout = 100)
         if dominio is None:
             conexion.cwd("/" + self.__dominio)
         else:
@@ -72,10 +72,15 @@ class EnlaceFTP:
 
     def listas_archivos_usuario(self, usuario, dominio = None, directorio = "cur"):
         ret = []
-        conexion = self.__conexion()
+        conexion = self.__conexion(timeout = 100)
         if dominio is None:
             dominio = self.__dominio
-        conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        #A veces la ruta no existe
+        try:
+            conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        except Exception as e:
+            conexion.quit()
+            return []
         data = []
         conexion.retrlines('MLSD', data.append)
         for line in data:
@@ -90,10 +95,14 @@ class EnlaceFTP:
     def elimina_archivo_usuario_meses(self, usuario, dias = 180,dominio = None, directorio = "cur"):
         fecha_actual_timestamp = datetime.now(tz=None).timestamp()
         ret = []
-        conexion = self.__conexion()
+        conexion = self.__conexion(timeout = 100)
         if dominio is None:
             dominio = self.__dominio
-        conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        try:
+            conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        except Exception as e:
+            conexion.quit()
+            return None
         data = []
         conexion.retrlines('MLSD', data.append)
         for line in data:
@@ -108,8 +117,12 @@ class EnlaceFTP:
         conexion.quit()
 
     def descargar_archivos(self, usuario, dominio, directorio, lista_archivos):
-        conexion = self.__conexion()
-        conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        conexion = self.__conexion(timeout = 100)
+        try:
+            conexion.cwd(f"/{dominio}/{usuario}/{directorio}")
+        except Exception as e:
+            conexion.quit()
+            return None
         for archivo in lista_archivos:
             self.descargar_archivo(archivo, conexion)
         conexion.quit()
