@@ -64,18 +64,19 @@ class main:
                 #porque si quisiera devolverlo al servidor, este debería tener el nombre original
                 #obtengo la lista de sus archivos en local y lo almaceno en una tabla de hash
                 #Formato de archivos
-                    #DATE.ID.HASH.eml - deseo quedarme sólo con el HASH
+                    #DATE.ID.directory.HASH.eml - deseo quedarme sólo con el HASH
+                    #directory será la 1era letra de Cur, New o Sent
                 #archivos_locales_hash = [f.split('.')[2] for f in listdir('.') if path.isfile(f)]
                 archivos_locales_hash = obtener_hash_archivos_locales()
                 #Deberían ser aquellos archivos que están tanto en el subdirectorio "cur" y "new"
-                for directorio in ["cur", "new"]:
+                for directorio in ["cur", "new", ".Sent/cur"]:
+                    print(usuario_remoto, dominio, directorio)
                     archivos_descargar = obtener_archivos_faltantes(archivos_locales_hash, enlace.listas_archivos_usuario(usuario_remoto, dominio, directorio))
                     #verifico si el archivo existe en la tabla de hash
                         #si existe lo ignoro
                         #si no existe lo descargo
                     enlace.descargar_archivos(usuario_remoto, dominio, directorio, archivos_descargar)
                     enlace.elimina_archivo_usuario_meses(usuario_remoto, int(parametros["meses_mantener"])*30, dominio, directorio)
-                    print(usuario_remoto, dominio, directorio)
                     print("transferidos:", enlace.archivos_transferidos)
                     print("eliminados:", enlace.archivos_eliminados)
 
