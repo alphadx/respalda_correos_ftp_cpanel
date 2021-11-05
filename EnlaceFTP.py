@@ -131,7 +131,6 @@ class EnlaceFTP:
         conexion.quit()
 
     def descargar_archivo(self, nombre_archivo_entrada, nombre_archivo_salida, enlace):
-        return True
         file_size = enlace.size(nombre_archivo_entrada)
         with open(nombre_archivo_salida, 'wb') as file:
             while file_size != file.tell():
