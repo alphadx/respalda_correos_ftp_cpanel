@@ -76,7 +76,8 @@ class main:
                         #si existe lo ignoro
                         #si no existe lo descargo
                     enlace.descargar_archivos(usuario_remoto, dominio, directorio, archivos_descargar)
-                    enlace.elimina_archivo_usuario_meses(usuario_remoto, int(parametros["meses_mantener"])*30, dominio, directorio)
+                    if parametros["eliminar_archivo"]:
+                        enlace.elimina_archivo_usuario_meses(usuario_remoto, int(parametros["meses_mantener"])*30, dominio, directorio)
                     print("transferidos:", enlace.archivos_transferidos)
                     print("eliminados:", enlace.archivos_eliminados)
 

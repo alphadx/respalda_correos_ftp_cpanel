@@ -8,10 +8,10 @@ from datetime import datetime
 #moverá entre dominios
 #moverá entre usuarios
 
-def agregar_mapa_archivo(origen, destino, archivo = "filemap.csv"):
+def agregar_mapa_archivo(origen, destino, directorio, archivo = "filemap.csv"):
     with open(archivo, "a", newline='') as f:
-        w = csv.DictWriter(f, fieldnames = ["origen", "destino"])
-        w.writerow({"origen" : origen, "destino" : destino})
+        w = csv.DictWriter(f, fieldnames = ["origen", "destino", "directorio"])
+        w.writerow({"origen" : origen, "destino" : destino, "directorio" : directorio})
 
 
 class EnlaceFTP:
@@ -124,30 +124,26 @@ class EnlaceFTP:
             conexion.quit()
             return None
         for archivo in lista_archivos:
-            self.descargar_archivo(archivo, conexion)
+            nombre_archivo_salida = f"{archivo.split('.')[0]}.{archivo.split('.')[1]}.{hashlib.md5(archivo.encode()).hexdigest()}.eml"
+            if self.descargar_archivo(archivo, nombre_archivo_salida, conexion):
+                agregar_mapa_archivo(archivo, nombre_archivo_salida, directorio)
+                self.__archivos_transferidos += 1          
         conexion.quit()
 
-    def descargar_archivo(self, nombre_archivo, enlace):
-        err = False
-        file_size = enlace.size(nombre_archivo)
-        nombre_string = f"{nombre_archivo.split('.')[0]}.{nombre_archivo.split('.')[1]}.{hashlib.md5(nombre_archivo.encode()).hexdigest()}.eml"
-        file = open(nombre_string, 'wb')
-        while file_size != file.tell():
-            try:
-                if file.tell() != 0:
-                    enlace.retrbinary(f'RETR {nombre_archivo}', file.write, file.tell())
-                else:
-                    enlace.retrbinary(f'RETR {nombre_archivo}', file.write)
-            except Exception as e:
-                print(f"error en {nombre_archivo} : {e}")
-                file.close()
-                err = True
-                remove(nombre_string)
-                break
-        if(not err):
-            file.close()
-            agregar_mapa_archivo(nombre_string, nombre_archivo)
-            self.__archivos_transferidos += 1
+    def descargar_archivo(self, nombre_archivo_entrada, nombre_archivo_salida, enlace):
+        return True
+        file_size = enlace.size(nombre_archivo_entrada)
+        with open(nombre_archivo_salida, 'wb') as file:
+            while file_size != file.tell():
+                try:
+                    if file.tell() != 0:
+                        enlace.retrbinary(f'RETR {nombre_archivo_entrada}', file.write, file.tell())
+                    else:
+                        enlace.retrbinary(f'RETR {nombre_archivo_entrada}', file.write)
+                except Exception as e:
+                    print(f"error en {nombre_archivo_entrada} : {e}")
+                    return False
+        return True
         
 
 
