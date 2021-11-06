@@ -92,9 +92,8 @@ class EnlaceFTP:
         return ret
 
 #eliminará todos los archivos que se encuentre a N dias del día de hoy
-    def elimina_archivo_usuario_meses(self, usuario, dias = 180,dominio = None, directorio = "cur"):
+    def elimina_archivo_usuario_meses(self, usuario, dias = 180, dominio = None, directorio = "cur"):
         fecha_actual_timestamp = datetime.now(tz=None).timestamp()
-        ret = []
         conexion = self.__conexion(timeout = 100)
         if dominio is None:
             dominio = self.__dominio
@@ -141,6 +140,7 @@ class EnlaceFTP:
                         enlace.retrbinary(f'RETR {nombre_archivo_entrada}', file.write)
                 except Exception as e:
                     print(f"error en {nombre_archivo_entrada} : {e}")
+                    remove(nombre_archivo_salida)
                     return False
         return True
         
